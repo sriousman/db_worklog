@@ -51,14 +51,21 @@ def previous_employee():
         Employee.lname == current_emp.lname,
         Employee.fname < current_emp.fname
         )
-    next_emps = Employee.select().order_by(Employee.lname.desc(), Employee.fname.desc()).where(Employee.lname < current_emp.lname)
+    next_emps = (
+            Employee
+            .select()
+            .order_by(Employee.lname.desc(), Employee.fname.desc())
+            .where(Employee.lname < current_emp.lname))
     if duplicates:
         current_emp = duplicates.get()
     else:
         if next_emps:
             current_emp = next_emps.get()
         else:
-            current_emp = Employee.select().order_by(Employee.lname.desc()).get()
+            current_emp = (
+                        Employee
+                        .select()
+                        .order_by(Employee.lname.desc()).get())
 
 
 def select_employee():
@@ -92,10 +99,13 @@ def edit_employee():
     print('--------------------------------------------------------------')
     first = input("\tfirst: ")
     last = input("\tlast: ")
-    update = Employee.update(fname=first, lname=last).where(Employee.id == current_emp.id)
+    update = (
+            Employee
+            .update(fname=first, lname=last)
+            .where(Employee.id == current_emp.id)
+            )
     if input("Would you like to save the changes? [Yy] ").lower() != 'n':
         update.execute()
-
 
 
 def initialize():
@@ -154,32 +164,36 @@ def print_tasks():
             if task == current_task:
                 if current_menu == 1:
                     print("\t     >> {0!s:<11s}\t\t{1!s:^10s}".format(
-                                                                task.name,
-                                                                task.timestamp))
+                                                            task.name,
+                                                            task.timestamp))
                 else:
-                    print("\t\t{0!s:<11s}\t\t{1!s:^10s}".format(task.name, task.timestamp.strftime('%A %B %d, %Y %I:%M%p')))
+                    print("\t\t{0!s:<11s}\t\t{1!s:^10s}".format(
+                        task.name,
+                        task.timestamp.strftime('%A %B %d, %Y %I:%M%p')))
 
                 if current_menu == 1:
                     print_task(current_task)
             else:
                 print("   ".rjust(5), end='')
-                print("\t\t{0!s:<11s}\t\t{1!s:^10s}".format(task.name, task.timestamp))
+                print("\t\t{0!s:<11s}\t\t{1!s:^10s}".format(
+                    task.name, task.timestamp))
             print()
         print('\t\t----------------------------------------------')
     else:
         pass
 
+
 def print_task(task):
     indent = "                           "
     print()
-    print(indent + '='*len(task.notes))
+    print(indent + '='*(len(task.notes)+7))
     print(
             "{indent}Duration: {0!s:<20s}\n"
             "{indent}Notes: {1!s:<20s}".format(
                                         task.duration,
                                         task.notes,
                                         indent="                           "))
-    print(indent + '='*len(task.notes))
+    print(indent + '='*(len(task.notes)+7))
 
 
 def add_task():
@@ -272,6 +286,7 @@ def search_tasks():
 
 def edit_task():
     """Edit Task"""
+    global current_task
     print('--------------------------------------------------------------\n')
     print("EDITING TASK\n")
     print('--------------------------------------------------------------')
@@ -279,16 +294,14 @@ def edit_task():
     name = input("\tname:")
     duration = input("\tduration: ")
     notes = input("\tnotes: ")
-    update = (
-            Employee.tasks
-            .update(
-                    name=name,
-                    duration=duration,
-                    notes=notes)
-            .where(Task.timestamp == current_task.timestamp)
-            )
+    if name:
+        current_task.name = name
+    if duration:
+        current_task.duration = int(duration)
+    if notes:
+        current_task.notes = notes
     if input("Would you like to save the changes? [Yy] ").lower() != 'n':
-        update.execute()
+        current_task.save()
 
 
 def delete_task():
@@ -338,7 +351,6 @@ task_menu = (print_employees, OrderedDict([
     ('p', previous_task),
     ('b', back)
 ]))
-
 
 
 if __name__ == '__main__':
